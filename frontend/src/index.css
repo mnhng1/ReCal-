@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #030000;
+}
+
+/* Add these styles to your CSS file */
+.text-for-student {
+  color: #00df9a; /* Color for "for student" */
+}
+
+.text-by-student {
+  color: #ff6347; /* Color for "by student" */
+}
