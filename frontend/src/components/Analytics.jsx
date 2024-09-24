@@ -11,7 +11,7 @@ export default function Analytics() {
                 <p>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                 </p>
-                <button className = " bg-black text-[#00df9a] bg-[#00df9a] w-[200px] rounded-md font-medium my-6 mx-auto py-3"> Start Now</button>
+                <button className = " bg-black text-[#00df9a] bg-[#00df9a] w-[200px] rounded-md font-medium my-6 mx-auto py-3 md:mx-0" > Start Now</button>
             </div>
         </div>
     </div>
