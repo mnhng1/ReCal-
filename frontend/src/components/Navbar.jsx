@@ -1,5 +1,5 @@
-import React, {useState} from 'react'
-import { CgDarkMode } from "react-icons/cg";
+import  {useState} from 'react'
+
 import {AiOutlineClose, AiOutlineMenu} from 'react-icons/ai'
 
 const Navbar = () => {

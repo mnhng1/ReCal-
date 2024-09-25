@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import  { useState } from 'react'
 import { FcGoogle } from 'react-icons/fc'
 
 export default function LoginPage() {
@@ -14,7 +14,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold text-center text-[#00df9a] mb-2">Welcome Back</h2>
+        <h2 className="text-2xl font-bold text-center text-[#00df9a] mb-2">Hello & Welcome.</h2>
         <p className="text-center text-gray-400 mb-6">Sign in to your account to continue</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

@@ -1,5 +1,5 @@
-import React from "react";
-import { ReactTyped, Typed } from "react-typed";
+
+import { ReactTyped } from "react-typed";
 import { useNavigate } from "react-router-dom";
 
 
