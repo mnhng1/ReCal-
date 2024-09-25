@@ -1,4 +1,4 @@
-import React from 'react'
+
 import Laptop from '../assets/laptop.jpg'
 export default function Analytics() {
   return (
