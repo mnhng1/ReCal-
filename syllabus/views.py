@@ -3,12 +3,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Syllabus
 from .serializers import SyllabusSerializer
-from rest_framework.views import APIView
+from django.views import View
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
 
-class SyllabusUploadView(APIView):
+class SyllabusUploadView(View):
+    @login_required
     def post(self, request, format = None):
         serializer = SyllabusSerializer(data = request.data)
         if serializer.is_valid():

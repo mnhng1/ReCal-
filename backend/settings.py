@@ -16,6 +16,13 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+# Initialize environment variables
+
+# OAuth2 Configuration
+OAUTH2_CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
+OAUTH2_CLIENT_SECRET = os.getenv('OAUTH2_CLIENT_SECRET')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -39,15 +46,30 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'syllabus'
+    'syllabus',
+    'accounts',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # For standard auth
+    'allauth.account.auth_backends.AuthenticationBackend',  # For OAuth
+)
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -91,6 +113,16 @@ DATABASES = {
     }
 }
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
+        'AUTH_PARAMS': {'access_type': 'offline'},
+        'OAUTH2_CLIENT_ID': OAUTH2_CLIENT_ID,
+        'OAUTH2_CLIENT_SECRET': OAUTH2_CLIENT_SECRET,
+        'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/' #Local Dev
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -136,3 +168,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'  # URL for accessing uploaded media
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory on the file system where media files are stored
+
+
+LOGIN_URL = 'http://127.0.0.1:5137/login'
