@@ -10,8 +10,6 @@ const Hero =  () => {
     function handleGetStart(){
 
         navigate("/login")
-
-
         
     }
 

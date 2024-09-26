@@ -4,35 +4,35 @@ import { FcGoogle } from 'react-icons/fc'
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  
+  const handleGoogleLogin = async () => {
+    window.location.href = 'http://localhost:8000/accounts/oauth/google/login/';
+}
+
   const handleLogin = async (e) => {
-    
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/login/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.message === "Login successful") {
-        window.location.href = 'http://localhost:5173/dashboard'
-      }
-      console.log(data)
+        const response = await fetch('http://localhost:8000/accounts/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username,
+                password,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.message === "Login successful") {
+            window.location.href = 'http://localhost:5173/dashboard'
+        }
+        console.log(data)
     } catch (e) {
-      console.log(e);
+        console.log(e);
     }
-  };
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
@@ -95,7 +95,8 @@ export default function LoginPage() {
               <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
             </div>
           </div>
-          <button
+          <button 
+            onClick={ handleGoogleLogin}
             className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 transition duration-300"
           >
             <FcGoogle className="w-5 h-5 mr-2" />

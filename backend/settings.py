@@ -171,3 +171,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory on the file system whe
 
 
 LOGIN_URL = 'http://127.0.0.1:5137/login'
+LOGIN_REDIRECT_URL = 'http://127.0.0.1:5137/dashboard'
+LOGOUT_REDIRECT_URL = 'http://127.0.0.1:5137/dashboard'
