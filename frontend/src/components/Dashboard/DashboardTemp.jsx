@@ -1,5 +1,5 @@
 import {  useState } from 'react';
-import { FiUpload, FiCalendar, FiMessageSquare, FiClock, FiPlus, FiUser } from 'react-icons/fi'
+import {  FiCalendar, FiMessageSquare, FiClock, FiPlus, FiUser } from 'react-icons/fi'
 import CourseCard from './CourseCard'
 import AddEditCourseModal from './CourseCardModal';
 
