@@ -1,161 +1,227 @@
-import {  useState } from 'react';
-import {  FiCalendar, FiMessageSquare, FiClock, FiPlus, FiUser } from 'react-icons/fi'
-import CourseCard from './CourseCard'
-import AddEditCourseModal from './CourseCardModal';
+import { useState, useRef, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { PlusCircle, Settings, Send, Paperclip, ChevronRight, X } from "lucide-react"
+import CourseView from './CourseView'
+import SettingsView from './SettingView'
 
-
-///const course = [{ id: 1, name: 'Introduction to Computer Science', instructor: 'Dr. Smith', nextDeadline: 'Oct 15, 2:00 PM', syllabusUploaded: true },
-///{ id: 2, name: 'Data Structures', instructor: 'Prof. Johnson', nextDeadline: 'Oct 20, 11:59 PM', syllabusUploaded: false },
-///{ id: 3, name: 'Artificial Intelligence', instructor: 'Dr. Lee', nextDeadline: 'Oct 18, 3:00 PM', syllabusUploaded: true },]
-
-export default function DashboardTemp() {
-    const [chatMessages, setChatMessages] = useState([]);
-    const [inputMessage, setInputMessage] = useState('')
-    const [courses, setCourses] = useState([
-    
+export default function Dashboard() {
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Hello! How can I assist you today?' },
   ])
+  const [input, setInput] = useState('')
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [courses, setCourses] = useState([])
+  const [activeCourse, setActiveCourse] = useState(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', pdf: null })
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [events, setEvents] = useState([
+    { title: 'Team Meeting', date: 'Tomorrow, 10:00 AM' },
+    { title: 'Project Deadline', date: 'Friday, 5:00 PM' },
+    { title: 'Webinar: AI in Education', date: 'Next Monday, 2:00 PM' },
+  ])
+  const [reminders, setReminders] = useState([
+    { title: 'Submit assignment', course: 'Math 101' },
+    { title: 'Review lecture notes', course: 'History 202' },
+  ])
+  const [showAddPopup, setShowAddPopup] = useState(false)
+  const [popupType, setPopupType] = useState('')
+  const messagesEndRef = useRef(null)
 
-    const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
-    const [editingCourse, setEditingCourse] = useState(null)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
-    const handleAddEditCourse = (course) => {
-      if (course.id) {
-        setCourses(courses.map(c => c.id === course.id ? course : c))
-      } else {
-        setCourses([...courses, { ...course, id: courses.length + 1 }])
-      }
-      setIsAddEditModalOpen(false)
-      setEditingCourse(null)
-    }
-  
-    const handleEditCourse = (course) => {
-      setEditingCourse(course)
-      setIsAddEditModalOpen(true)
-    }
+  useEffect(scrollToBottom, [messages])
 
-  const handleSendMessage = (e) => {
-    e.preventDefault()
-    if (inputMessage.trim()) {
-      setChatMessages([...chatMessages, { text: inputMessage, isUser: true }])
-      setInputMessage('')
-      // Here you would typically send the message to your AI agent and get a response
+  const handleSend = () => {
+    if (input.trim()) {
+      setMessages([...messages, { role: 'user', content: input }])
+      setInput('')
+      // Simulate AI response
       setTimeout(() => {
-        setChatMessages(prev => [...prev, { text: "I'm processing your request. How can I assist you with your syllabus?", isUser: false }])
+        const aiResponse = 'This is a simulated AI response.'
+        setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }])
+        
+        // Check if the message might be an event or reminder
+        if (aiResponse.toLowerCase().includes('event') || aiResponse.toLowerCase().includes('reminder')) {
+          setShowAddPopup(true)
+          setPopupType(aiResponse.toLowerCase().includes('event') ? 'event' : 'reminder')
+        }
       }, 1000)
     }
   }
 
-  
+  const handleAddCourse = () => {
+    if (courses.length < 5 && newCourse.name && newCourse.instructor && newCourse.pdf) {
+      setCourses([...courses, newCourse])
+      setNewCourse({ name: '', instructor: '', pdf: null })
+      setIsDialogOpen(false)
+    }
+  }
+
+  const handleDeleteCourse = (index) => {
+    const newCourses = courses.filter((_, i) => i !== index)
+    setCourses(newCourses)
+    setActiveCourse(null)
+  }
+
+  const handleAddEvent = (title, date) => {
+    setEvents([...events, { title, date }])
+  }
+
+  const handleAddReminder = (title, course) => {
+    setReminders([...reminders, { title, course }])
+  }
+
+  const isFormValid = newCourse.name && newCourse.instructor && newCourse.pdf
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-[#00df9a] mb-8">Dashboard</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Course Cards Section */}
-          <div className="md:col-span-1 grid gap-4">
-            {courses.map(course => (
-              <CourseCard
-                key={course.id}
-                courseName={course.name}
-                instructor={course.instructor}
-                nextDeadline={course.nextDeadline}
-                syllabusUploaded={course.syllabusUploaded}
+    <div className="flex h-screen bg-black text-gray-100">
+      {/* Sidebar */}
+      <div 
+        className={`${isExpanded ? 'w-64' : 'w-16'} bg-black border-r border-gray-800 p-4 flex flex-col transition-all duration-300 ease-in-out`}
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+      >
+        <h1 className={`text-2xl font-bold mb-4 overflow-hidden ${isExpanded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>Dashboard</h1>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="mb-4 justify-center" disabled={courses.length >= 5}>
+              <PlusCircle className="h-4 w-4" />
+              {isExpanded && <span className="ml-2">New Course</span>}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border border-gray-800">
+            <DialogHeader>
+              <DialogTitle>Add New Course</DialogTitle>
+              <DialogDescription>
+                Enter course details and upload a syllabus.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Input 
+                placeholder="Class Name" 
+                value={newCourse.name}
+                onChange={(e) => setNewCourse({...newCourse, name: e.target.value})}
+                className="bg-gray-800 border-gray-700" 
               />
-            ))}
-            <button onClick = {() => setIsAddEditModalOpen(true)}className="bg-gray-800 p-6 rounded-lg shadow-lg text-[#00df9a] flex items-center justify-center hover:bg-gray-700 transition duration-300">
-              <FiPlus className="mr-2" /> Add New Course
-            </button>
-          </div>
+              <Input 
+                placeholder="Instructor" 
+                value={newCourse.instructor}
+                onChange={(e) => setNewCourse({...newCourse, instructor: e.target.value})}
+                className="bg-gray-800 border-gray-700" 
+              />
+              <Input 
+                type="file" 
+                accept=".pdf"
+                onChange={(e) => setNewCourse({...newCourse, pdf: e.target.files[0]})}
+                className="bg-gray-800 border-gray-700" 
+              />
+            </div>
+            <Button onClick={handleAddCourse} disabled={!isFormValid}>Add Course</Button>
+          </DialogContent>
+        </Dialog>
+        {courses.map((course, index) => (
+          <Button key={index} variant="ghost" className="justify-start mb-2" onClick={() => setActiveCourse(index)}>
+            <ChevronRight className="mr-2 h-4 w-4" />
+            {isExpanded && <span className="truncate">{course.name}</span>}
+          </Button>
+        ))}
+        <div className="flex-grow"></div>
+        <Button variant="ghost" className="justify-center" onClick={() => setShowSettings(true)}>
+          <Settings className="h-4 w-4" />
+          {isExpanded && <span className="ml-2">Settings</span>}
+        </Button>
+      </div>
 
-          {/* AI Chat Section */}
-          <div className="  bg-gray-800 p-6 rounded-lg shadow-lg mx-auto w-full md:w-full md:h-full md:col-span-2 flex flex-col">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <FiMessageSquare className="mr-2" /> AI Assistant
-            </h2>
-            <div className="md:h-64 overflow-y-auto mb-4 bg-gray-700 p-4 rounded-lg sm:h-64 ">
-              {chatMessages.map((msg, index) => (
-                <div key={index} className={`mb-2 ${msg.isUser ? 'text-right' : 'text-left'}`}>
-                  <span className={`inline-block p-2 rounded-lg ${msg.isUser ? 'bg-[#00df9a] text-gray-800' : 'bg-gray-600'}`}>
-                    {msg.text}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {activeCourse !== null ? (
+          <CourseView 
+            course={courses[activeCourse]} 
+            onClose={() => setActiveCourse(null)} 
+            onDelete={() => handleDeleteCourse(activeCourse)}
+          />
+        ) : showSettings ? (
+          <SettingsView onClose={() => setShowSettings(false)} />
+        ) : (
+          <>
+            {/* Chat Area */}
+            <ScrollArea className="flex-1 p-4 min-h-[300px]">
+              {messages.map((message, index) => (
+                <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <span className={`inline-block p-2 rounded-lg ${message.role === 'user' ? 'bg-blue-600' : 'bg-gray-800'}`}>
+                    {message.content}
                   </span>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
+            </ScrollArea>
+
+            {/* Input Area */}
+            <div className="p-4 relative">
+              <div className="flex items-center border border-gray-800 rounded-lg overflow-hidden">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask v0 a question..."
+                  className="flex-grow bg-black border-none focus:ring-0"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                />
+                <Button onClick={handleSend} size="icon" className="bg-black hover:bg-gray-800">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              {showAddPopup && (
+                <div className="absolute bottom-full left-0 mb-2 p-2 bg-gray-800 rounded-lg shadow-lg">
+                  <Button onClick={() => {
+                    setShowAddPopup(false)
+                    // Logic to add to events or reminders
+                    if (popupType === 'event') {
+                      handleAddEvent('New Event', 'Date TBD')
+                    } else {
+                      handleAddReminder('New Reminder', 'Course TBD')
+                    }
+                  }}>
+                    Add to {popupType === 'event' ? 'Events' : 'Reminders'}
+                  </Button>
+                </div>
+              )}
             </div>
-            <form onSubmit={handleSendMessage} className="flex ">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                className="flex-grow px-3 py-2 bg-gray-700 text-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-[#00df9a]"
-                placeholder="Ask about your syllabus..."
-              />
-              <button
-                type="submit"
-                className="bg-[#00df9a] text-gray-800 px-4 py-2 rounded-r-lg hover:bg-[#00df9a]/90 transition duration-300"
-              >
-                Send
-              </button>
-            </form>
-          </div>
 
-          {/* Syllabus Upload Section */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <FiUser className="mr-2" /> User Profile
-            </h2>
-            <label className="flex flex-col items-center px-4 py-6 bg-gray-700 text-[#00df9a] rounded-lg shadow-lg tracking-wide uppercase border border-[#00df9a] cursor-pointer hover:bg-[#00df9a] hover:text-gray-800 transition duration-300">
-              <svg className="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
-              </svg>
-              <span className="mt-2 text-base leading-normal">Working...</span>
-            </label>
-          </div>
-
-          {/* Upcoming Events Section */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <FiClock className="mr-2" /> Upcoming Events
-            </h2>
-            <ul className="space-y-2">
-              <li className="flex items-center">
-                <FiCalendar className="mr-2 text-[#00df9a]" />
-                <span>Midterm Exam - Oct 15, 2:00 PM</span>
-              </li>
-              <li className="flex items-center">
-                <FiCalendar className="mr-2 text-[#00df9a]" />
-                <span>Project Deadline - Oct 20, 11:59 PM</span>
-              </li>
-              <li className="flex items-center">
-                <FiCalendar className="mr-2 text-[#00df9a]" />
-                <span>Office Hours - Every Tuesday, 3:00 PM</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Google Calendar Integration Section */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <FiCalendar className="mr-2" /> Google Calendar Integration
-            </h2>
-            <p className="mb-4">Connect your Google Calendar to automatically add events from your syllabus.</p>
-            <button className="bg-[#00df9a] text-gray-800 px-4 py-2 rounded-lg hover:bg-[#00df9a]/90 transition duration-300">
-              Connect Google Calendar
-            </button>
-          </div>
-        </div>
+            {/* Events and Reminders */}
+            <div className="p-4 border-t border-gray-800 flex">
+              <div className="flex-1 mr-2">
+                <h2 className="text-lg font-semibold mb-2">Upcoming Events</h2>
+                <ul className="list-disc list-inside text-sm text-gray-400">
+                  {events.map((event, index) => (
+                    <li key={index}>{event.title} - {event.date}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex-1 ml-2">
+                <h2 className="text-lg font-semibold mb-2">Reminders</h2>
+                <ul className="list-disc list-inside text-sm text-gray-400">
+                  {reminders.map((reminder, index) => (
+                    <li key={index}>{reminder.title} - {reminder.course}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-      {isAddEditModalOpen && (
-        <AddEditCourseModal
-          course={editingCourse}
-          onSave={handleAddEditCourse}
-          onClose={() => {
-            setIsAddEditModalOpen(false)
-            setEditingCourse(null)
-          }}
-        />
-      )}
     </div>
   )
 }
