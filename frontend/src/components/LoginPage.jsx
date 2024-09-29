@@ -5,11 +5,11 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const handleGoogleLogin = async () => {
-    window.location.href = 'http://localhost:8000/accounts/oauth/google/login/';
+    window.location.href = "http://localhost:8000/accounts/oauth/google/login/";
 }
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
     try {
         const response = await fetch('http://localhost:8000/accounts/login/', {
             method: 'POST',
@@ -36,6 +36,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <script src="//accounts.google.com/gsi/client" async></script>
+      <div id="g_id_onload"
+     data-client_id="123-secret.apps.googleusercontent.com"
+     data-login_uri="{% url 'google_login_by_token' %}">
+</div>
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold text-center text-[#00df9a] mb-2">Hello & Welcome.</h2>
         <p className="text-center text-gray-400 mb-6">Create or sign in to your account to continue</p>
@@ -104,6 +109,8 @@ export default function LoginPage() {
           </button>
         </div>
       </div>
+      
     </div>
+    
   )
 }

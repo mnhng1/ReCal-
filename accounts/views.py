@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 import json
+from allauth.socialaccount.providers.google.views import OAuth2LoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 
 @csrf_exempt
 def register(request):
@@ -21,6 +24,7 @@ def register(request):
 @csrf_exempt
 def user_login(request):
     if request.method == 'POST':
+        
         data = json.loads(request.body)
         username = data.get('username')
         password = data.get('password')
@@ -29,3 +33,7 @@ def user_login(request):
             login(request, user)
             return JsonResponse({'message': 'Login successful'}, status=200)
         return JsonResponse({'error': 'Invalid credentials'}, status=400)
+
+
+
+

@@ -12,15 +12,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Initialize environment variables
-
-# OAuth2 Configuration
-OAUTH2_CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
-OAUTH2_CLIENT_SECRET = os.getenv('OAUTH2_CLIENT_SECRET')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -55,7 +51,7 @@ INSTALLED_APPS = [
 ]
 
 
-SITE_ID = 1
+SITE_ID = 2
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # For standard auth
@@ -116,12 +112,13 @@ DATABASES = {
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
-        'AUTH_PARAMS': {'access_type': 'offline'},
-        'OAUTH2_CLIENT_ID': OAUTH2_CLIENT_ID,
-        'OAUTH2_CLIENT_SECRET': OAUTH2_CLIENT_SECRET,
-        'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/' #Local Dev
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+         #Local Dev
     }
 }
+
+SOCIALACCOUNT_LOGIN_ON_GET=True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -169,6 +166,6 @@ MEDIA_URL = '/media/'  # URL for accessing uploaded media
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory on the file system where media files are stored
 
 
-LOGIN_URL = 'http://127.0.0.1:5137/login'
-LOGIN_REDIRECT_URL = 'http://127.0.0.1:5137/dashboard'
-LOGOUT_REDIRECT_URL = 'http://127.0.0.1:5137/dashboard'
+LOGIN_URL = 'http://localhost:5173/'
+LOGIN_REDIRECT_URL = 'http://localhost:5173/dashboard'
+LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
