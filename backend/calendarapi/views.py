@@ -36,3 +36,18 @@ def fetch_google_calendar_events(request):
         })
 
     return JsonResponse({'events': event_data})
+
+
+def make_events(request):
+    user = request.user
+
+    try :
+        social_token = SocialToken.objects.get(account__user = user, account__provider='google')
+    except SocialToken.DoesNotExist:
+        return JsonResponse({'error': 'Google OAuth token not found'}, status=401)
+    event = request.event
+    creds = Credentials(token = social_token.token)
+    service = build('calendar', 'v3', credentials = creds)
+
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print ('Event created: %s' % (event.get('htmlLink')))

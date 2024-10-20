@@ -23,8 +23,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/syllabus/', include('syllabus.urls')),
-    path('accounts/', include('accounts.urls')),
-    path('accounts/', include('allauth.socialaccount.urls')),
+    path('accounts/', include('allauth.urls')),
     path('calendar/', include('calendarapi.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

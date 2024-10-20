@@ -1,70 +1,48 @@
-// UpcomingEvents.jsx
-import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 
-const UpcomingEvents = ({ events }) => {
-  
+
+const UpcomingEvents = () => {
     const [events, setEvents] = useState([
-    { title: 'No event found, try connecting Google Calendar or add an Event', date: 'N/a' },
+        { title: 'No event found, try connecting Google Calendar or add an Event', date: 'N/a' },
+    ]);
+
     
-    ])
-  
 
     useEffect(() => {
-      const fetchEvent = async () => {
-        try{
-          const response = await fetch('http:localhost:8000/calendar/fetch-event',{
-            method: "GET",
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer your-token-here',
-            },
-          }) 
+        const fetchEvent = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/calendar/fetch-cal', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        
+                    },
+                });
 
-          if (!response.ok){
-            throw new Error((`HTTP error! status: ${response.status}`));
-          }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-          const result = await response.json();
-          setData(result);
-        } catch(e){
-          console.log(error)
-        }
-      } 
-      
+                const result = await response.json();
+                setEvents(result);
+            } catch (error) {
+                console.log(error);
+            }
+        };
 
+        fetchEvent()
+    }, []);
 
-    },[events])
-
-
-
-  return (
-    <div className="upcoming-events">
-      {events.length === 0 ? (
-        <p>No upcoming events found.</p>
-      ) : (
-        <ul className="space-y-4">
-          {events.map((event) => (
-            <li key={event.id} className="p-4 bg-gray-700 rounded-md shadow">
-              <strong>{event.title}</strong>
-              <p>{event.date} at {event.time}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
-
-UpcomingEvents.propTypes = {
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      title: PropTypes.string.isRequired,
-      date: PropTypes.string.isRequired,
-      time: PropTypes.string.isRequired,
-    })
-  ).isRequired,
+    return (
+        <div>
+            {events.map((event, index) => (
+                <div key={index}>
+                    <h3>{event.title}</h3>
+                    <p>{event.date}</p>
+                </div>
+            ))}
+        </div>
+    );
 };
 
 export default UpcomingEvents;
