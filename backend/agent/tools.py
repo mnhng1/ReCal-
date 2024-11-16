@@ -3,7 +3,7 @@ from googleapiclient.discovery import build
 from langchain.agents import Tool
 from django.http import JsonResponse
 from allauth.socialaccount.models import SocialToken
-
+from .parsers import EventDetailsParser
 
 
 def get_google_calendar_service(user):
@@ -16,11 +16,31 @@ def get_google_calendar_service(user):
 
 
 def view_google_calendar_events(user, filters):
+    parser = ViewEventDetailsParser()
+    try:
+        validated_filters = parser.parse(filters)
+    except Exception as e:
+        return {"error": f"Invalid filters format: {str(e)}"}
     service = get_google_calendar_service(user = user)
-    time_min = filters.get('time_min', '2024-01-01T00:00:00Z')  # Set default time for demo
-    return service.events().list(calendarId='primary', timeMin=time_min, maxResults=10).execute().get('items', [])
+    
+    request = service.events().list(
+        calendarId='primary',
+        timeMin=validated_filters.time_min,
+        timeMax=validated_filters.time_max,
+        maxResults=validated_filters.max_results,
+        singleEvents=validated_filters.single_events,
+        orderBy=validated_filters.order_by
+    )
+    
+    events_result = request.execute()
+    return events_result.get('items', [])
 
 def create_google_calendar_events(user, event_details):
+    parser = EventDetailsParser()
+    try:
+        validated_event = parser.parse(event_details)
+    except Exception as e:
+        return {"error": f"Invalid event format: {str(e)}"}
     service = get_google_calendar_service(user = user)
     event = {
         'summary': event_details.summary,

@@ -43,6 +43,9 @@ class CalendarAgent:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-3.5-turbo")
         
+
+        self.event_details_parser = EventDetailsParser()
+
         self.intent_prompt = ChatPromptTemplate.from_messages([
             ("system", """You are a calendar assistant. Determine if the user wants to:
                 1. "create_event" (schedule, create, book, add an event)
@@ -51,6 +54,37 @@ class CalendarAgent:
             MessagesPlaceholder(variable_name="chat_history"),
             ("human", "{input}")
         ])
+
+        self.intent_chain = (
+            self.intent_prompt
+            | self.llm
+            | self.event_details_parser
+        )
+
+        self.view_event_chain = (
+             ChatPromptTemplate.from_messages([
+                ("system", """You are a calendar assistant that helps users view their events.
+                    Extract time filters from the user's request and format them appropriately.
+                    
+                    Examples:
+                    - "Show my events for today" → timeMin: today's start, timeMax: today's end
+                    - "What meetings do I have next week" → timeMin: next week's start, timeMax: next week's end
+                    - "Show my upcoming events" → timeMin: now, maxResults: 10
+                    
+                    Format the response as a JSON object with these fields:
+                    {
+                        "time_min": "ISO datetime",
+                        "time_max": "ISO datetime" (optional),
+                        "max_results": number (default 10),
+                        "single_events": boolean (default true),
+                        "order_by": "startTime"
+                    }"""),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{input}")
+            ])
+            | self.llm 
+            | view_event_tool
+        )
 
         
         self.create_event_chain = (
@@ -88,11 +122,11 @@ class CalendarAgent:
                     }""")
             ])
             | self.llm 
-            | EventDetailsParser() 
+            | self.event_details_parser
             | create_event_tool
         )
 
-    self.view_event_chain = ChatPromptTemplate.from_message(
-        input_variables=['user_input'],
-    )
+        self.view_event_chain = ChatPromptTemplate.from_message(
+            input_variables=['user_input'],
+        )
         

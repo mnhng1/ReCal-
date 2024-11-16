@@ -2,7 +2,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from langchain_openai import ChatOpenAI
-from .firestore_chat_message_history import FirestoreChatMessageHistory
+from .memory import InMemoryChatMessageHistory
 from dotenv import load_dotenv
 import os
 
@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 
-chat_history = FirestoreChatMessageHistory()
+chat_history = InMemoryChatMessageHistory()
 
 
 model = ChatOpenAI(model="gpt-3.5-turbo")

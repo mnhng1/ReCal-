@@ -24,7 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/syllabus/', include('syllabus.urls')),
     path('accounts/', include('allauth.urls')),
-    path('calendar/', include('calendarapi.urls'))
+    path('api/agent/', include('agent.urls'))
+   
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

@@ -51,3 +51,40 @@ class EventDetailsParser(PydanticOutputParser):
             return EventDetails(**json_obj)
         except Exception as e:
             raise OutputParserException(f"Failed to parse event details: {str(e)}\nReceived text: {text}")
+
+
+
+
+class ViewEventFilters(BaseModel):
+    time_min: str = Field(
+        description="Start time to fetch events from (ISO format)",
+        default=datetime.now().isoformat() + 'Z'
+    )
+    time_max: Optional[str] = Field(
+        description="End time to fetch events until (ISO format)",
+        default=None
+    )
+    max_results: int = Field(
+        description="Maximum number of events to return",
+        default=10
+    )
+    single_events: bool = Field(
+        description="Whether to expand recurring events",
+        default=True
+    )
+    order_by: str = Field(
+        description="Order of events",
+        default="startTime"
+    )
+
+class ViewEventParser(PydanticOutputParser):
+    def __init__(self):
+        super().__init__(pydantic_object=ViewEventFilters)
+    
+    def parse(self, text: str) -> ViewEventFilters:
+        try:
+            
+            filters = super().parse(text)
+            return filters
+        except Exception as e:
+            raise OutputParserException(f"Failed to parse view filters: {str(e)}")
