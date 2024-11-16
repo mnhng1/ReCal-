@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'calendarapi',
 ]
 
 SITE_ID = 2
@@ -76,6 +77,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     # Add other allowed origins here
 ]
+
+
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 

@@ -7,6 +7,9 @@ import json
 from allauth.socialaccount.providers.google.views import OAuth2LoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from django.conf import settings
+
+SECRET_KEY = settings.SECRET_KEY
 
 @csrf_exempt
 def register(request):
@@ -19,7 +22,7 @@ def register(request):
         if User.objects.filter(username=username).exists():
             return JsonResponse({'error': 'Username is already taken.'}, status=400)
         user = User.objects.create_user(username=username, password=password)
-        return JsonResponse({'message': 'User created successfully'}, status=201)
+        return JsonResponse({'message': 'User created successfully', 'username': username}, status=201)
 
 @csrf_exempt
 def user_login(request):
@@ -31,9 +34,28 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({'message': 'Login successful'}, status=200)
+            return JsonResponse({'message': 'Login successful', 'username': username}, status=200)
         return JsonResponse({'error': 'Invalid credentials'}, status=400)
 
 
 
 
+
+@csrf_exempt
+def get_user_token(request):
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            token = jwt.encode({'username': request.user.username})
+
+@csrf_exempt
+def social_login_token(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            social_account = SocialAccount.objects.filter(user = request.user).first()
+            if social_account:
+                token = jwt.encode({'username': request.user.username}, SECRET_KEY, algorithm='HS256')
+                return JsonResponse({'token': token})
+            else:
+                return JsonResponse({'error': 'No social account found'}, status=400)
+        else:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)

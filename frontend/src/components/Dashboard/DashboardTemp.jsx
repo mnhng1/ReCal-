@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { PlusCircle, Settings, Send, Paperclip, ChevronRight, X } from "lucide-react"
 
-// Simplified UI components
+
 const Button = ({ children, className, ...props }) => (
   <button className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${className}`} {...props}>
     {children}
@@ -174,7 +174,7 @@ export default function Dashboard() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask v0 a question..."
+                  placeholder="Ask Sloth a question..."
                   className="flex-grow bg-black border-none focus:ring-0"
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                 />
