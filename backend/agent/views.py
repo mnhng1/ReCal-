@@ -1,34 +1,26 @@
 # backend/agent/views.py
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from langchain_openai import ChatOpenAI
 from .memory import InMemoryChatMessageHistory
 from dotenv import load_dotenv
+from .tools import create_google_calendar_events, view_google_calendar_events
 import os
+from .agent import CalendarAgent
 
-
-load_dotenv()
-
-
-chat_history = InMemoryChatMessageHistory()
-
-
-model = ChatOpenAI(model="gpt-3.5-turbo")
-
+@login_required
 @csrf_exempt
 def chat_with_ai(request):
-    if request.method == 'POST':
-        user_input = request.POST.get('input', '')
-        session_id = request.POST.get('session_id', 'default_session')
+    if request.method == "POST":
+        data = json.loads(request.body)
+        user_input = data.get('query', '')
+        user = request.user
 
-        # Save the message to Firestore
-        chat_history.save_message(session_id, 'user', user_input)
-
-        # Generate a response using LangChain
-        ai_response = model.invoke(chat_history.get_messages(session_id))
-
-        # Save the AI response to Firestore
-        chat_history.save_message(session_id, 'ai', ai_response.content)
-
-        return JsonResponse({'response': ai_response.content})
+        agent = CalendarAgent()
+        response = agent.process_input(user_input)
+        
+        return JsonResponse({
+            'response': response
+        })
     return JsonResponse({'error': 'Invalid request method'}, status=400)

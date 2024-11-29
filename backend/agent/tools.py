@@ -3,11 +3,12 @@ from googleapiclient.discovery import build
 from langchain.agents import Tool
 from django.http import JsonResponse
 from allauth.socialaccount.models import SocialToken
-from .parsers import EventDetailsParser
+from .parsers import EventDetailsParser, ViewEventParser
+from datetime import datetime, timedelta
 
 
 def get_google_calendar_service(user):
-    user = request.user
+    user = user
     social_token = SocialToken.objects.get(account__user=user, account__provider='google')
     if not social_token:
         raise Exception("Google token not found for user")
@@ -16,11 +17,18 @@ def get_google_calendar_service(user):
 
 
 def view_google_calendar_events(user, filters):
-    parser = ViewEventDetailsParser()
+    parser = ViewEventParser()
     try:
         validated_filters = parser.parse(filters)
     except Exception as e:
-        return {"error": f"Invalid filters format: {str(e)}"}
+        validated_filters = {
+            'time_min': (datetime.utcnow() - timedelta(days=1)).isoformat() + 'Z',  # 1 day ago
+            'time_max': (datetime.utcnow() + timedelta(days=7)).isoformat() + 'Z',  # 1 week from now
+            'max_results': 10,
+            'single_events': True,
+            'order_by': 'startTime'
+        }
+        
     service = get_google_calendar_service(user = user)
     
     request = service.events().list(
@@ -65,7 +73,7 @@ create_event_tool = Tool(
 get_event_tool = Tool(
     name = "GetEventTool",
     description= "Get Google Calendar event(s) with provided details",
-    func= create_google_calendar_events
+    func= view_google_calendar_events
 )
 
 

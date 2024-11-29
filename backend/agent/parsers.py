@@ -1,6 +1,8 @@
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
+from datetime import datetime
+import json
 
 class Reminder(BaseModel):
     method: str
@@ -29,6 +31,9 @@ class EventDetails(BaseModel):
         description="Reminder settings"
     )
 
+class OutputParserException(Exception):
+    print(str(Exception))
+
 class EventDetailsParser(PydanticOutputParser):
     def __init__(self):
         super().__init__(pydantic_object=EventDetails)
@@ -37,7 +42,6 @@ class EventDetailsParser(PydanticOutputParser):
         try:
             # Parse JSON string to dict
             json_obj = json.loads(text)
-            
             # Ensure datetime format is correct
             for time_field in ['start', 'end']:
                 if time_field in json_obj and 'dateTime' in json_obj[time_field]:
@@ -83,8 +87,8 @@ class ViewEventParser(PydanticOutputParser):
     
     def parse(self, text: str) -> ViewEventFilters:
         try:
-            
             filters = super().parse(text)
             return filters
         except Exception as e:
             raise OutputParserException(f"Failed to parse view filters: {str(e)}")
+

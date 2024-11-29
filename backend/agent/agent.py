@@ -25,7 +25,7 @@ COLLECTION_NAME  = "chat_history"
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-model = ChatOpenAI(model="gpt-3.5-turbo")
+
 
 
 
@@ -56,9 +56,7 @@ class CalendarAgent:
         ])
 
         self.intent_chain = (
-            self.intent_prompt
-            | self.llm
-            | self.event_details_parser
+            self.intent_prompt | self.llm
         )
 
         self.view_event_chain = (
@@ -126,7 +124,37 @@ class CalendarAgent:
             | create_event_tool
         )
 
-        self.view_event_chain = ChatPromptTemplate.from_message(
-            input_variables=['user_input'],
-        )
+        def process_input(self, input):
+            try:
+                intent_response = self.intent_chain.run(
+                    {
+                        "chat_history": chat_history.messages,
+                        "input": user_input
+                    }
+                )
+
+                intent = intent_response.strip()
+
+                if intent == "create_event":
+                    event_details = self.create_event_chain.run({
+                        "chat_history": chat_history.messages,
+                        "input": user_input
+                    })
+                    result = create_event_tool.func(user, event_details)
+                    return result
+                elif intent == "view_event":
+                    filters = self.view_event_chain.run({
+                        "chat_history": chat_history.messages,
+                        "input": user_input
+                    })
+                    events = get_event_tool.func(user, filters)
+                    return events
+                else:
+                    return "Sorry, I didn't understand that."
+            except Exception as e:
+                return f"An error occurred: {str(e)}"
+                
+
+            
+    
         
