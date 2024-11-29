@@ -7,6 +7,7 @@ from .parsers import EventDetailsParser, ViewEventParser
 from datetime import datetime, timedelta
 
 
+
 def get_google_calendar_service(user):
     user = user
     social_token = SocialToken.objects.get(account__user=user, account__provider='google')
@@ -70,11 +71,11 @@ create_event_tool = Tool(
     func= create_google_calendar_events
 )
 
-get_event_tool = Tool(
+view_event_tool = Tool(
     name = "GetEventTool",
     description= "Get Google Calendar event(s) with provided details",
     func= view_google_calendar_events
 )
 
 
-tools = [create_event_tool, get_event_tool]
+tools = [create_event_tool, view_event_tool]

@@ -1,158 +1,168 @@
-
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
-from langchain_google_firestore import  FirestoreChatMessageHistory
-from langchain.agents import Tool
-from langchain.agents import ZeroShotAgent, AgentExecutor
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder
+)
+from langchain_community.chat_models import ChatOpenAI
+from langchain.schema import AIMessage, HumanMessage
 from .tools import create_event_tool, view_event_tool, tools
 import os
-from .chains import branches
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableBranch, RunnableLambda
-from langchain_core.output_parsers import StrOutputParser
+import logging
+from .models import ChatMessage
+from django.contrib.auth.models import User
 
 
-from google.cloud import firestore
 
 load_dotenv()  
+logger = logging.getLogger(__name__)
 
 
-PROJECT_ID = "sloth-18837"
-SESSION_ID = "user_session_new"
-COLLECTION_NAME  = "chat_history"
+
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
-
-
-
-print("Firestore intiliazing")
-client = firestore.Client(project=PROJECT_ID)
-
-chat_history = FirestoreChatMessageHistory(
-    session_id = SESSION_ID,
-    collection = COLLECTION_NAME,
-    client = client
-)
-
-
 class CalendarAgent:
-    def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-3.5-turbo")
+    
+    logger.info("Initializing CalendarAgent")
+    def __init__(self, user: User):
+        self.user = user
+        self.llm = ChatOpenAI(model="gpt-3.5-turbo", api_key = OPENAI_API_KEY)
+        self.chat_history = self.load_chat_history()
+
+        
         
 
         self.event_details_parser = EventDetailsParser()
 
         self.intent_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a calendar assistant. Determine if the user wants to:
-                1. "create_event" (schedule, create, book, add an event)
-                2. "view_event" (check, show, find, view events)
-                Respond with only "create_event" or "view_event"."""),
+            SystemMessagePromptTemplate.from_template(
+                "You are a calendar assistant. Determine if the user wants to:\n"
+                "1. 'create_event' (schedule, create, book, add an event)\n"
+                "2. 'view_event' (check, show, find, view events)\n"
+                "Respond with only 'create_event' or 'view_event'."
+            ),
             MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}")
+            HumanMessagePromptTemplate.from_template("{input}")
         ])
 
-        self.intent_chain = (
-            self.intent_prompt | self.llm
-        )
+        self.intent_chain = self.intent_prompt | self.llm
+        
 
-        self.view_event_chain = (
-             ChatPromptTemplate.from_messages([
-                ("system", """You are a calendar assistant that helps users view their events.
-                    Extract time filters from the user's request and format them appropriately.
-                    
-                    Examples:
-                    - "Show my events for today" → timeMin: today's start, timeMax: today's end
-                    - "What meetings do I have next week" → timeMin: next week's start, timeMax: next week's end
-                    - "Show my upcoming events" → timeMin: now, maxResults: 10
-                    
-                    Format the response as a JSON object with these fields:
-                    {
-                        "time_min": "ISO datetime",
-                        "time_max": "ISO datetime" (optional),
-                        "max_results": number (default 10),
-                        "single_events": boolean (default true),
-                        "order_by": "startTime"
-                    }"""),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{input}")
-            ])
-            | self.llm 
-            | view_event_tool
-        )
+        self.view_event_prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(
+                "You are a calendar assistant that helps users view their events.\n"
+                "Extract time filters from the user's request and format them appropriately.\n\n"
+                "Examples:\n"
+                "- 'Show my events for today' → timeMin: today's start, timeMax: today's end\n"
+                "- 'What meetings do I have next week' → timeMin: next week's start, timeMax: next week's end\n"
+                "- 'Show my upcoming events' → timeMin: now, maxResults: 10\n\n"
+                "Format the response as a JSON object with these fields:\n"
+                "{\n"
+                "    'time_min': 'ISO datetime',\n"
+                "    'time_max': 'ISO datetime' (optional),\n"
+                "    'max_results': number (default 10),\n"
+                "    'single_events': boolean (default true),\n"
+                "    'order_by': 'startTime'\n"
+                "}"
+            ),
+            MessagesPlaceholder(variable_name="chat_history"),
+            HumanMessagePromptTemplate.from_template("{input}")
+        ])
+        self.view_event_chain = self.view_event_prompt | self.llm
 
         
-        self.create_event_chain = (
-            ChatPromptTemplate.from_messages([
-                ("system", """You are a calendar assistant that creates events. Extract event details from user input into a Google Calendar format.
-                    If any required fields are missing, check the chat history before asking for clarification."""),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", """Please format this request as a Google Calendar event:
-                    {input}
-                    
-                    Required JSON format:
-                    {
-                        "summary": "<event title>",
-                        "location": "<location>",
-                        "description": "<description>",
-                        "start": {
-                            "dateTime": "<YYYY-MM-DDTHH:MM:SS>",
-                            "timeZone": "America/Los_Angeles"
-                        },
-                        "end": {
-                            "dateTime": "<YYYY-MM-DDTHH:MM:SS>",
-                            "timeZone": "America/Los_Angeles"
-                        },
-                        "recurrence": ["<RRULE:FREQ=DAILY;COUNT=1>"],
-                        "attendees": [
-                            {"email": "<attendee1@email.com>"}
-                        ],
-                        "reminders": {
-                            "useDefault": false,
-                            "overrides": [
-                                {"method": "email", "minutes": 10},
-                                {"method": "popup", "minutes": 5}
-                            ]
-                        }
-                    }""")
-            ])
-            | self.llm 
-            | self.event_details_parser
-            | create_event_tool
-        )
+        self.create_event_prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(
+                "You are a calendar assistant that creates events. Extract event details from user input into a Google Calendar format.\n"
+                "If any required fields are missing, check the chat history before asking for clarification.\n"
+                "Required JSON format:\n"
+                "{\n"
+                "    'summary': '<event title>',\n"
+                "    'location': '<location>',\n"
+                "    'description': '<description>',\n"
+                "    'start': {\n"
+                "        'dateTime': '<YYYY-MM-DDTHH:MM:SS>',\n"
+                "        'timeZone': 'America/Los_Angeles'\n"
+                "    },\n"
+                "    'end': {\n"
+                "        'dateTime': '<YYYY-MM-DDTHH:MM:SS>',\n"
+                "        'timeZone': 'America/Los_Angeles'\n"
+                "    },\n"
+                "    'recurrence': ['<RRULE:FREQ=DAILY;COUNT=1>'],\n"
+                "    'attendees': [\n"
+                "        {'email': '<attendee1@example.com>'}\n"
+                "    ],\n"
+                "    'reminders': {\n"
+                "        'useDefault': false,\n"
+                "        'overrides': [\n"
+                "            {'method': 'email', 'minutes': 10},\n"
+                "            {'method': 'popup', 'minutes': 5}\n"
+                "        ]\n"
+                "    }\n"
+                "}"
+            ),
+            MessagesPlaceholder(variable_name="chat_history"),
+            HumanMessagePromptTemplate.from_template("{input}")
+        ])
+        self.create_event_chain = self.create_event_prompt | self.llm
 
-        def process_input(self, input):
-            try:
-                intent_response = self.intent_chain.run(
-                    {
-                        "chat_history": chat_history.messages,
-                        "input": user_input
-                    }
-                )
 
-                intent = intent_response.strip()
-
-                if intent == "create_event":
-                    event_details = self.create_event_chain.run({
-                        "chat_history": chat_history.messages,
-                        "input": user_input
-                    })
-                    result = create_event_tool.func(user, event_details)
-                    return result
-                elif intent == "view_event":
-                    filters = self.view_event_chain.run({
-                        "chat_history": chat_history.messages,
-                        "input": user_input
-                    })
-                    events = get_event_tool.func(user, filters)
-                    return events
+    def load_chat_history(self):
+            messages = ChatMessage.objects.filter(user = self.user).order_by('timestamp')
+            history = []
+            for msg in messages:
+                if msg.role == 'user':
+                    history.append(HumanMessage(content=msg.content))
                 else:
-                    return "Sorry, I didn't understand that."
-            except Exception as e:
-                return f"An error occurred: {str(e)}"
+                    history.append(AIMessage(content = msg.content))
+            return history
+
+
+    def process_input(self, user_input:str):
+        try:
+            #Save user message
+            ChatMessage.objects.create(user=self.user, role = 'user', content = user_input)
+            self.chat_history.append(HumanMessage(content = user_input))
+            
+            #determine the intent of input
+            intent_response = self.intent_chain.invoke(
+                {
+                    "chat_history": self.chat_history,
+                    "input": user_input
+                }
+            )
+            intent = intent_response.strip()
+
+            if intent == "create_event":
+                #Process event creation
+                event_details_response = self.create_event_chain.invoke({
+                    "chat_history": self.chat_history,
+                    "input": user_input
+                })
+                event_details = event_details_response.content
+                result = create_event_tool.func(self.user, event_details)
+            #Process event viewing
+            elif intent == "view_event":
+                filters_response = self.view_event_chain.invoke({
+                    "chat_history": self.chat_history,
+                    "input": user_input
+                })
+                filters = filters_response.content
+                result = view_event_tool.func(self.user, filters)
+            else:
+                result = "Sorry, I didn't understand that."
+            
+            #Save chat to history
+            ChatMessage.objects.create(user=self.user, role = 'assistant', content = result)
+            self.chat_history.append(AIMessage(content=result))
+
+            return result
+        except Exception as e:
+            logger.error(f"Error processing input for user {self.user.id}: {str(e)}")
+            return "An error occurred while processing your request."
                 
 
             

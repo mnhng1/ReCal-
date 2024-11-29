@@ -1,7 +1,7 @@
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 class Reminder(BaseModel):
@@ -24,15 +24,12 @@ class EventDetails(BaseModel):
         default=ReminderSettings(
             useDefault=False,
             overrides=[
-                Reminder(method="email", minutes=24 * 60),
+                Reminder(method="email", minutes=1440),
                 Reminder(method="popup", minutes=10)
             ]
         ),
         description="Reminder settings"
     )
-
-class OutputParserException(Exception):
-    print(str(Exception))
 
 class EventDetailsParser(PydanticOutputParser):
     def __init__(self):
@@ -42,10 +39,10 @@ class EventDetailsParser(PydanticOutputParser):
         try:
             # Parse JSON string to dict
             json_obj = json.loads(text)
+            
             # Ensure datetime format is correct
             for time_field in ['start', 'end']:
                 if time_field in json_obj and 'dateTime' in json_obj[time_field]:
-                    # Ensure proper ISO format
                     datetime_str = json_obj[time_field]['dateTime']
                     # Add timezone if not present
                     if not datetime_str.endswith('Z') and not any(c in datetime_str for c in '+-'):
@@ -56,17 +53,14 @@ class EventDetailsParser(PydanticOutputParser):
         except Exception as e:
             raise OutputParserException(f"Failed to parse event details: {str(e)}\nReceived text: {text}")
 
-
-
-
 class ViewEventFilters(BaseModel):
     time_min: str = Field(
         description="Start time to fetch events from (ISO format)",
-        default=datetime.now().isoformat() + 'Z'
+        default=(datetime.utcnow() - timedelta(days=1)).isoformat() + 'Z'
     )
     time_max: Optional[str] = Field(
         description="End time to fetch events until (ISO format)",
-        default=None
+        default=(datetime.utcnow() + timedelta(days=7)).isoformat() + 'Z'
     )
     max_results: int = Field(
         description="Maximum number of events to return",
@@ -87,8 +81,9 @@ class ViewEventParser(PydanticOutputParser):
     
     def parse(self, text: str) -> ViewEventFilters:
         try:
-            filters = super().parse(text)
-            return filters
+            # Parse JSON string to dict
+            json_obj = json.loads(text)
+            
+            return ViewEventFilters(**json_obj)
         except Exception as e:
-            raise OutputParserException(f"Failed to parse view filters: {str(e)}")
-
+            raise OutputParserException(f"Failed to parse view filters: {str(e)}\nReceived text: {text}")
