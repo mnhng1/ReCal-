@@ -2,12 +2,11 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from langchain.agents import Tool
 from django.http import JsonResponse
-from allauth.socialaccount.models import SocialToken
 from .parsers import EventDetailsParser, ViewEventParser
 from datetime import datetime, timedelta
 
 
-
+'''
 def get_google_calendar_service(user):
     user = user
     social_token = SocialToken.objects.get(account__user=user, account__provider='google')
@@ -15,7 +14,7 @@ def get_google_calendar_service(user):
         raise Exception("Google token not found for user")
     creds = Credentials(token=social_token.token)
     return build('calendar', 'v3', credentials=creds)
-
+'''
 
 def view_google_calendar_events(user, filters):
     parser = ViewEventParser()

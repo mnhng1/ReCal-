@@ -24,3 +24,8 @@ def chat_with_ai(request):
             'response': response
         })
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+
+

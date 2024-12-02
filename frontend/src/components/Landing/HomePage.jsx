@@ -7,11 +7,10 @@ import Cards from './Cards';
 export default function HomePage() {
   return (
     <div>
-      <Navbar/>
+      
       <Hero/>
-      <Analytics/>
-      <Newsletter/>
-      <Cards/>
+      
+      
     </div>
   );
 };

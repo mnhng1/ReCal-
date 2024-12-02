@@ -9,6 +9,7 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage
 from .tools import create_event_tool, view_event_tool, tools
 import os
+from .parsers import EventDetailsParser
 import logging
 from .models import ChatMessage
 from django.contrib.auth.models import User
@@ -128,7 +129,7 @@ class CalendarAgent:
             self.chat_history.append(HumanMessage(content = user_input))
             
             #determine the intent of input
-            intent_response = self.intent_chain.invoke(
+            intent_response = self.intent_chain.predict(
                 {
                     "chat_history": self.chat_history,
                     "input": user_input
@@ -138,7 +139,7 @@ class CalendarAgent:
 
             if intent == "create_event":
                 #Process event creation
-                event_details_response = self.create_event_chain.invoke({
+                event_details_response = self.create_event_chain.predict({
                     "chat_history": self.chat_history,
                     "input": user_input
                 })
@@ -146,7 +147,7 @@ class CalendarAgent:
                 result = create_event_tool.func(self.user, event_details)
             #Process event viewing
             elif intent == "view_event":
-                filters_response = self.view_event_chain.invoke({
+                filters_response = self.view_event_chain.predict({
                     "chat_history": self.chat_history,
                     "input": user_input
                 })
@@ -165,6 +166,3 @@ class CalendarAgent:
             return "An error occurred while processing your request."
                 
 
-            
-    
-        

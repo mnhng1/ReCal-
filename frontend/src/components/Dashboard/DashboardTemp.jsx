@@ -23,43 +23,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-black text-gray-300">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 shadow-lg transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
-        <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center justify-center border-b border-gray-800 ">
-            <h2 className="text-xl font-semibold text-gray-100">AI Dashboard</h2>
-          </div>
-          <nav className="flex-1 overflow-auto p-4">
-            <ul className="space-y-2">
-              <li>
-                <button className="flex w-full items-center rounded-lg px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-gray-100">
-                  <FiPlus className="mr-3 h-5 w-5" />
-                  New Chat
-                </button>
-              </li>
-              <li>
-                <button className="flex w-full items-center rounded-lg px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-gray-100">
-                  <FiMessageSquare className="mr-3 h-5 w-5" />
-                  Chat History
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </aside>
+      
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col overflow-hidden ">
         {/* Mobile Header */}
         <header className="flex h-16 items-center border-b border-gray-800 bg-gray-900 px-4 lg:hidden">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-gray-400 hover:text-gray-100"
-          >
-            <FiMenu className="h-6 w-6" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </button>
-          <h1 className="ml-4 text-lg font-semibold text-gray-100">AI Dashboard</h1>
+          <h1 className="ml-4 text-lg font-semibold text-gray-100">ReCal</h1>
         </header>
 
         {/* Chat Area */}
@@ -108,13 +78,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Overlay for mobile sidebar */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
+     
     </div>
   )
 }

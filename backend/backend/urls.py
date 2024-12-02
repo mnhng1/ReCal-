@@ -19,11 +19,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
+from .authentication.views import GoogleLogin
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('api/agent/', include('agent.urls'))
+    path('api/agent/', include('agent.urls')),
+    path('google-login/', GoogleLogin.as_view(), name='google_login'),
    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

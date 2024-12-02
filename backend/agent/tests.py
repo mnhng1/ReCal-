@@ -40,3 +40,23 @@ class ParserTests(TestCase):
         filters = parser.parse(input_data)
         self.assertIsInstance(filters, ViewEventFilters)
         self.assertEqual(filters.single_events, True)
+
+
+class CalendarAgentTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.agent = CalendarAgent(user=self.user)
+    
+    def test_intent_recognition_create_event(self):
+        user_input = "Schedule a meeting tomorrow at 10 AM"
+        intent_response = self.agent.intent_chain.invoke({
+            "chat_history": self.agent.chat_history,
+            "input": user_input
+        })
+        intent = intent_response.content.strip()
+        self.assertEqual(intent, "create_event")
+
+    def test_process_input_view_event(self):
+        user_input = "What events do I have this week?"
+        response = self.agent.process_input(user_input)
+        self.assertIn("Here are your upcoming events", response)
