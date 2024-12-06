@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { FiMenu, FiPlus, FiMessageSquare, FiSend } from 'react-icons/fi'
+import { FiMenu, FiPlus, FiMessageSquare, FiSend, FiLogIn } from 'react-icons/fi'
+import LogoutButton from './LogoutButton'
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([
@@ -23,7 +24,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-black text-gray-300">
-      
+      <LogoutButton />
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col overflow-hidden ">
