@@ -9,6 +9,14 @@ from .serializers import GoogleAuthSerializer
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+import os
+
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 @method_decorator(csrf_exempt, name='dispatch')
 class GoogleLogin(APIView):
     permission_classes = [AllowAny]
@@ -25,8 +33,8 @@ class GoogleLogin(APIView):
             return Response({'error': 'Token is missing'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Specify the CLIENT_ID of the app that accesses the backend:
-            CLIENT_ID = '671602920396-05s317r22f3vdaraggk5k0jpf53cj3se.apps.googleusercontent.com'
+            
+            CLIENT_ID = os.getenv("VITE_GOOGLE_CLIENT_ID")
             idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
             
             email = idinfo.get('email')
