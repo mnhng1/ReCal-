@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'django.contrib.sites',
     'agent',
     
@@ -149,10 +150,6 @@ LOGIN_URL = 'http://localhost:5173/'
 LOGIN_REDIRECT_URL = 'http://localhost:5173/dashboard'
 LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
 
-# PyJWT secret and algorithm
-JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-very-secret-key')
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_DELTA = datetime.timedelta(minutes=30)  # Token expiry time
 
 # JWT Configuration
 REST_FRAMEWORK = {

@@ -12,8 +12,8 @@ const Navbar = () => {
       setNav(!nav)
     } 
     return (
-      <div className=' flex  just h-24 items-center max-w-[1240px] mx-auto px-4 text-white'>
-        <h1 className=' w-full text-3xl font-bold text-[#00df9a]'>REACT.</h1>
+      <div className=' flex h-24 items-center max-w-[1240px] mx-auto px-1 text-white'>
+        <h1 className=' w-full text-3xl font-bold text-[#00df9a]'>ReCal</h1>
         <ul className='hidden md:flex'>
             <li  className='p-4'>Home</li>
             <li  className='p-4'>About</li>

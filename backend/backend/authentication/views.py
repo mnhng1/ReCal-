@@ -21,7 +21,6 @@ load_dotenv()
 @method_decorator(csrf_exempt, name='dispatch')
 class GoogleLogin(APIView):
     permission_classes = [AllowAny]
-
     # Exempts this view from CSRF checks
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
@@ -32,9 +31,7 @@ class GoogleLogin(APIView):
         token = serializer.validated_data.get('token')
         if not token:
             return Response({'error': 'Token is missing'}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            
             CLIENT_ID = os.getenv("VITE_GOOGLE_CLIENT_ID")
             idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
             

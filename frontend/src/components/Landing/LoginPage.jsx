@@ -6,9 +6,6 @@ import { FcGoogle } from 'react-icons/fc';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-
-  
-
   const handleGoogleSuccess = async (credentialResponse) => {
     const { credential } = credentialResponse;
     if (credential) {
@@ -33,7 +30,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center text-white">
-      <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg shadow-md p-8">
+      <div className="w-full max-w-md bg-black  rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold text-center text-[#00df9a] mb-2">Hello & Welcome.</h2>
         <p className="text-center text-gray-400 mb-6">Sign in to your account to continue</p>
         <div className="mt-6">

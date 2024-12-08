@@ -10,7 +10,8 @@ import os
 from .agent import CalendarAgent
 
 
-@login_required
+
+
 @csrf_exempt
 def chat_with_ai(request):
     if request.method == "POST":
