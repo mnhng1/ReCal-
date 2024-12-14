@@ -78,7 +78,7 @@ class CalendarAgent:
         self.create_event_prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(
                 "You are a calendar assistant that creates events. Extract event details from user input into a Google Calendar format.\n"
-                "If any required fields are missing, check the chat history before asking for clarification.\n"
+                "If any required fields are missing, check the chat history to find such detail and reconfirm, else ask for clarification.\n"
                 "Required JSON format:\n"
                 "{\n"
                 "    'summary': '<event title>',\n"

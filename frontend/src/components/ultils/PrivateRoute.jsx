@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import jwt_decode from "jwt-decode";
+import * as JWT from 'jwt-decode';
 
 const PrivateRoute = ({ children }) => {
     const accessToken = localStorage.getItem('access_token');
@@ -9,7 +9,7 @@ const PrivateRoute = ({ children }) => {
     }
 
     try {
-        const decodedToken = jwt_decode(accessToken);
+        const decodedToken = JWT(accessToken);
         const currentTime = Date.now() / 1000;
         if (decodedToken.exp < currentTime) {
             // Token expired
